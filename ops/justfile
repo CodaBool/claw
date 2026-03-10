@@ -1,0 +1,3 @@
+ami:
+  packer init .
+  packer build -var="unique_ami_name=sock" .

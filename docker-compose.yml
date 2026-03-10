@@ -1,0 +1,62 @@
+services:
+  openclaw:
+    image: ghcr.io/hostinger/hvps-openclaw
+    init: true
+
+    # Custom entrypoint — wraps the default /entrypoint.sh with two fixes:
+    #
+    # 1. Delete stale Chrome SingletonLock files before start.
+    #    Chromium leaves these behind on unclean shutdown (e.g. container kill),
+    #    which blocks the managed browser from launching ("Port in use" error).
+    #
+    # 2. Background golden-config restore (15s delay).
+    #    OpenClaw rewrites openclaw.json on startup and strips custom settings
+    #    (specifically <Trusted partner> number from channels.whatsapp.allowFrom).
+    #    After the gateway finishes its startup config touch (~10s), we overwrite
+    #    the file with our known-good "golden" copy. The gateway picks up
+    #    the change via its dynamic config watcher — no second restart needed.
+    #    $$ is used because Docker Compose interpolates single $ as env vars.
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        find /data/.openclaw/browser -name SingletonLock -delete 2>/dev/null
+        ( sleep 15 \
+          && GOLDEN_CFG=/data/.openclaw/config-backups/openclaw.json.golden \
+          && [ -f "$$GOLDEN_CFG" ] \
+          && cp "$$GOLDEN_CFG" /data/.openclaw/openclaw.json \
+          && echo '[config-guard] Restored golden config after startup' \
+        ) &
+        exec /entrypoint.sh node /server.cjs
+
+    ports:
+      # Bind to localhost only — external access is via SSH tunnel / Tailscale only.
+      # This was part of the security hardening (no direct internet exposure).
+      - "127.0.0.1:${PORT}:${PORT}"
+      # CODABOOL: another guide said 18789 is admin panel, token said on init
+
+    env_file:
+      - .env   # API keys, GOG_KEYRING_PASSWORD, BRAVE_API_KEY, gateway token, etc.
+
+    restart: unless-stopped
+
+    volumes:
+      - ./data:/data                     # Main persistent data (workspace, config, browser profiles)
+      - ./data/linuxbrew:/home/linuxbrew # Homebrew packages used by skills
+      - /dev/shm:/dev/shm               # Shared memory — required for Chromium in Docker.
+                                         # Without this, Chrome tabs crash with "out of memory"
+                                         # because Docker's default /dev/shm is only 64MB.
+
+    # Also set explicit shm size as a safety net (some Docker versions ignore the mount).
+    shm_size: '2gb'
+
+    # SYS_ADMIN capability — required for Chromium's sandboxing within Docker.
+    # Without this, Chrome refuses to start even with --no-sandbox in some kernels.
+    cap_add:
+      - SYS_ADMIN
+
+    # Disable seccomp filtering — Chromium uses syscalls (clone, unshare) that
+    # Docker's default seccomp profile blocks. Without this, browser launch fails
+    # silently or with cryptic "namespace sandbox" errors.
+    security_opt:
+      - seccomp:unconfined

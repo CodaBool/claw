@@ -1,0 +1,33 @@
+{
+  "agent": {
+    "metrics_collection_interval": 600,
+    "logfile": "/opt/aws/server.log"
+  },
+  "metrics": {
+    "namespace": "Claw",
+    "metrics_collected": {
+      "disk": {
+        "resources": ["/"],
+        "measurement": ["used_percent"]
+      },
+      "mem": { "measurement": ["used_percent"] },
+      "net": { "measurement": ["err_out"] },
+      "netstat": { "measurement": ["tcp_established"] },
+      "processes": { "measurement": ["total"] }
+    }
+  },
+  "logs": {
+    "log_stream_name": "log",
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {
+            "file_path": "",
+            "log_group_name": "/aws/ec2/claw",
+            "retention_in_days": 30
+          }
+        ]
+      }
+    }
+  }
+}

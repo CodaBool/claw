@@ -1,0 +1,59 @@
+# name: slap
+# permissions: # required for oidc
+#   id-token: write
+#   contents: read
+# on:
+#   push:
+#     branchs:
+#       - never
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Extract Pipline Vars
+#         run: |
+#           repo=${GITHUB_REPOSITORY#CodaBool/}
+#           echo "run=${RUN_NUMBER}" >> $GITHUB_ENV
+#           echo "repo=${repo,,}" >> $GITHUB_ENV
+#         env:
+#           RUN_NUMBER: ${{ toJSON(github.run_number) }}
+#       - uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           role-to-assume: arn:aws:iam::919759177803:role/gh-action-assume
+#           aws-region: us-east-1
+#       - name: Pricing
+#         run: |
+#           #price=$(aws --region=us-east-1 ec2 describe-spot-price-history --instance-types t4g.nano --start-time=$(date +%s) --product-descriptions="Linux/UNIX" --query 'SpotPriceHistory[*].{az:AvailabilityZone, price:SpotPrice}' | jq -r ".[] | select(.az == \"us-east-1a\") | .price")
+#           price=$(aws pricing get-products --service-code AmazonEC2 --filters "Type=TERM_MATCH,Field=instanceType,Value=t4g.nano" "Type=TERM_MATCH,Field=operatingSystem,Value=Linux" "Type=TERM_MATCH,Field=usagetype,Value=BoxUsage:t4g.nano" --region us-east-1 | jq -r '.PriceList[]' | jq -r '.terms.OnDemand[].priceDimensions[].pricePerUnit.USD')
+#           price_day=$(python3 -c "import sys; print(round(float(sys.argv[1]) * 24, 2))" $price)
+#           price_month=$(python3 -c "import sys; print(round(float(sys.argv[1]) * 24 * 30.4, 2))" $price)
+#           echo "Server will cost \$$price_day/day & \$$price_month/month"
+#       - uses: hashicorp/setup-packer@main
+#         with:
+#           version: 1.9.4 # https://releases.hashicorp.com/packer
+#       - name: Packer
+#         if: "! contains(github.event.commits[0].message, '[skip build]')"
+#         working-directory: ./ops
+#         run: |
+#           # echo "MONGO_URI=${{ secrets.MONGO_URI }}" > ../.env
+#           packer init .
+#           packer build -var="unique_ami_name=${{ env.repo }}-${{ env.run }}" .
+#       - uses: hashicorp/setup-terraform@v2
+#         with:
+#           terraform_version: 1.6.2 # https://releases.hashicorp.com/terraform
+#           terraform_wrapper: false
+#       - name: Deploy
+#         working-directory: ./ops
+#         run: |
+#           terraform init
+#           terraform apply -auto-approve -var="ssh_ip=${{ secrets.WIN_IP }}"
+#       - name: Dashboard
+#         working-directory: ./ops
+#         run: |
+#           ./dashboard.sh
+#           ./rm_ami.sh || true
+#           ./rm_ebs.sh || true
+#       # - name: Tag
+#       #   working-directory: ./ops
+#       #   run: aws ec2 create-tags --resources $(terraform output -raw id) --tags Key=Name,Value=${{ env.repo }}
