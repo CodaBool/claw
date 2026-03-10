@@ -77,19 +77,22 @@ build {
 
   // I used a gist guide on how to setup log agent as well as the AWS docs
   // gist = https://gist.github.com/adam-hanna/06afe09209589c80ba460662f7dce65c
-  // docs = https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html 
+  // docs = https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html
   provisioner "shell" {
     // environment_vars = [
     //   "FOO=hello world",
     // ]
     inline = [
       "sudo dnf update -y",
-      "sudo dnf install docker git amazon-cloudwatch-agent -y",
+      "sudo dnf install -y openssh-server",
+      ////"sudo dnf install -y docker git amazon-cloudwatch-agent openssh-server",
 
-      "sudo dnf install -y docker",
-      "sudo systemctl enable docker",
-      "sudo systemctl start docker",
-      "sudo usermod -aG docker ec2-user",
+      ////"sudo systemctl enable docker",
+      ////"sudo systemctl start docker",
+      ////"sudo usermod -aG docker ec2-user",
+
+      "sudo systemctl enable sshd",
+      "sudo systemctl start sshd",
 
       // AWS monitoring & node & nginx
       // add back in ssm agent when AWS supports ipv6 for agent requests
@@ -101,12 +104,12 @@ build {
 
       // add monitoring config
       // "chmod 400 ~/.env",
-      "sudo chmod 750 /tmp/agent.json",
-      "sudo chown root:root /tmp/agent.json",
-      "sudo mv /tmp/agent.json /opt/aws/agent.json",
+      ////"sudo chmod 750 /tmp/agent.json",
+      ////"sudo chown root:root /tmp/agent.json",
+      ////"sudo mv /tmp/agent.json /opt/aws/agent.json",
 
       // start monitoring process
-      "sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/agent.json",
+      ////"sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -s -c file:/opt/aws/agent.json",
       // "sudo yum clean all"
     ]
   }

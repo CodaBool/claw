@@ -1,6 +1,6 @@
-variable "name" {
-  type = string
-}
+# variable "name" {
+#   type = string
+# }
 
 variable "key_name" {
   type    = string
@@ -8,15 +8,16 @@ variable "key_name" {
 }
 
 variable "ssh_ip" {
-  type = string
+  type    = string
+  default = "107.200.81.38/32"
 }
 
-variable "ip" {
-  type = string
-}
-variable "subnet" {
-  type = string
-}
+# variable "ip" {
+#   type = string
+# }
+# variable "subnet" {
+#   type = string
+# }
 
 variable "instance_type" {
   type    = string

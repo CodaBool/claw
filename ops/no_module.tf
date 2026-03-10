@@ -22,7 +22,6 @@ terraform {
 locals {
   name   = "claw" # will use "name*" for ami filtering
   subnet = "subnet-02bd6f23bd2e48675"
-  ssh_ip = var.ssh_ip
   ip     = "how would i know this before deploying?"
 }
 
@@ -67,7 +66,7 @@ resource "aws_security_group" "main" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["107.200.81.38/32"]
+    cidr_blocks = [var.ssh_ip]
     # ipv6_cidr_blocks = [var.ssh_ip] # must be ipv6 ending in /128
   }
   ingress {
@@ -139,11 +138,6 @@ resource "aws_iam_policy" "retention" {
         Resource = "*"
     }]
   })
-}
-
-variable "ssh_ip" {
-  type    = string
-  default = ""
 }
 
 output "private_dns" {
