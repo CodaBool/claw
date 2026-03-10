@@ -20,15 +20,15 @@ terraform {
 }
 
 module "ec2" {
-  source        = "github.com/CodaBool/AWS/modules/ec2"
-  name          = "claw" # will use "name*" for ami filtering
-  subnet        = "subnet-02bd6f23bd2e48675"
-  ssh_ip        = var.ssh_ip
-  ip            = ""
+  source = "github.com/CodaBool/AWS/modules/ec2"
+  name   = "claw" # will use "name*" for ami filtering
+  subnet = "subnet-02bd6f23bd2e48675"
+  ssh_ip = var.ssh_ip
+  ip     = "how would i know this before deploying?"
 }
 
 variable "ssh_ip" {
-  type = string
+  type    = string
   default = ""
 }
 
