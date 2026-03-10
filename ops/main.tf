@@ -30,7 +30,7 @@ locals {
 
 resource "aws_instance" "main" {
   ami                    = data.aws_ami.image.id
-  instance_type          = "t4g.nano"
+  instance_type          = "t4g.small"
   subnet_id              = local.subnet # ipv6
   key_name               = local.name
   vpc_security_group_ids = [aws_security_group.main.id]
@@ -38,6 +38,14 @@ resource "aws_instance" "main" {
   # for initial assignment
   # ipv6_address_count   = 1
   iam_instance_profile = local.name
+  root_block_device {
+    volume_type = "gp3"
+    volume_size = 4 # base image uses ~2Gb
+  }
+  # force IMDSv2
+  metadata_options {
+    http_tokens = "required"
+  }
   tags = {
     Name = local.name
   }
@@ -71,6 +79,12 @@ resource "aws_security_group" "main" {
     to_port          = 0
     protocol         = "-1"
     ipv6_cidr_blocks = ["::/0"]
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
     Name = local.name

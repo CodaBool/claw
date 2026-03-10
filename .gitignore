@@ -1,3 +1,4 @@
 .terraform
 .env
 .terraform.lock.hcl
+docker-compose

@@ -1,3 +1,4 @@
 ami:
   packer init .
+  ./download_compose.sh
   packer build -var="unique_ami_name=claw" .

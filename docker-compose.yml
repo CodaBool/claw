@@ -1,62 +1,46 @@
 services:
   openclaw:
-    image: ghcr.io/hostinger/hvps-openclaw
-    init: true
-
-    # Custom entrypoint — wraps the default /entrypoint.sh with two fixes:
-    #
-    # 1. Delete stale Chrome SingletonLock files before start.
-    #    Chromium leaves these behind on unclean shutdown (e.g. container kill),
-    #    which blocks the managed browser from launching ("Port in use" error).
-    #
-    # 2. Background golden-config restore (15s delay).
-    #    OpenClaw rewrites openclaw.json on startup and strips custom settings
-    #    (specifically <Trusted partner> number from channels.whatsapp.allowFrom).
-    #    After the gateway finishes its startup config touch (~10s), we overwrite
-    #    the file with our known-good "golden" copy. The gateway picks up
-    #    the change via its dynamic config watcher — no second restart needed.
-    #    $$ is used because Docker Compose interpolates single $ as env vars.
-    entrypoint:
-      - /bin/bash
-      - -c
-      - |
-        find /data/.openclaw/browser -name SingletonLock -delete 2>/dev/null
-        ( sleep 15 \
-          && GOLDEN_CFG=/data/.openclaw/config-backups/openclaw.json.golden \
-          && [ -f "$$GOLDEN_CFG" ] \
-          && cp "$$GOLDEN_CFG" /data/.openclaw/openclaw.json \
-          && echo '[config-guard] Restored golden config after startup' \
-        ) &
-        exec /entrypoint.sh node /server.cjs
-
-    ports:
-      # Bind to localhost only — external access is via SSH tunnel / Tailscale only.
-      # This was part of the security hardening (no direct internet exposure).
-      - "127.0.0.1:${PORT}:${PORT}"
-      # CODABOOL: another guide said 18789 is admin panel, token said on init
-
-    env_file:
-      - .env   # API keys, GOG_KEYRING_PASSWORD, BRAVE_API_KEY, gateway token, etc.
-
+    image: ghcr.io/openclaw/openclaw
+    container_name: openclaw
     restart: unless-stopped
 
+    env_file:
+      - .env
+
+    environment:
+      HOME: /home/node
+      XDG_CONFIG_HOME: /home/node/.openclaw
+      OPENCLAW_HOME: /home/node/.openclaw
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+
+    ports:
+      - "127.0.0.1:18789:18789"
+
     volumes:
-      - ./data:/data                     # Main persistent data (workspace, config, browser profiles)
-      - ./data/linuxbrew:/home/linuxbrew # Homebrew packages used by skills
-      - /dev/shm:/dev/shm               # Shared memory — required for Chromium in Docker.
-                                         # Without this, Chrome tabs crash with "out of memory"
-                                         # because Docker's default /dev/shm is only 64MB.
+      - /srv/openclaw/state:/home/node/.openclaw
+      - /srv/openclaw/workspace:/home/node/.openclaw/workspace
 
-    # Also set explicit shm size as a safety net (some Docker versions ignore the mount).
-    shm_size: '2gb'
+    logging:
+      driver: awslogs
+      options:
+        awslogs-region: us-east-1
+        awslogs-group: /aws/ec2/claw/openclaw
+        awslogs-stream: openclaw
+        awslogs-create-group: "false"
 
-    # SYS_ADMIN capability — required for Chromium's sandboxing within Docker.
-    # Without this, Chrome refuses to start even with --no-sandbox in some kernels.
-    cap_add:
-      - SYS_ADMIN
-
-    # Disable seccomp filtering — Chromium uses syscalls (clone, unshare) that
-    # Docker's default seccomp profile blocks. Without this, browser launch fails
-    # silently or with cryptic "namespace sandbox" errors.
     security_opt:
-      - seccomp:unconfined
+      - no-new-privileges:true
+
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,size=512m
+
+  cloudflared:
+    image: cloudflare/cloudflared
+    container_name: cloudflared
+    restart: unless-stopped
+    depends_on:
+      - openclaw
+    network_mode: host
+    env_file:
+      - .env
+    command: tunnel --no-autoupdate --edge-ip-version 6 --protocol http2 run
