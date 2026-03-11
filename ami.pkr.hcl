@@ -39,16 +39,8 @@ build {
     "source.amazon-ebs.al2023"
   ]
   provisioner "file" {
-    source      = "./.env"
-    destination = "/tmp/.env"
-  }
-  provisioner "file" {
-    source      = "../docker-compose.yml"
-    destination = "/tmp/docker-compose.yml"
-  }
-  provisioner "file" {
-    source      = "./docker-compose"
-    destination = "/tmp/docker-compose"
+    source      = "./ami/"
+    destination = "/tmp/"
   }
   provisioner "shell" {
     inline = [
@@ -66,27 +58,23 @@ build {
       "sudo systemctl start sshd",
 
       // setup volumes
-      "sudo mkdir -p /srv/openclaw/state /srv/openclaw/workspace",
+      "sudo mkdir -p /srv/openclaw",
+      "sudo cp -a /tmp/packer-files/. /srv/openclaw/",
+
+      # moving files and setting permissions
+      "sudo mkdir -p /srv/openclaw",
+      "sudo cp -a /tmp/packer-files/. /srv/openclaw/",
+      "sudo mkdir -p /usr/local/lib/docker/cli-plugins",
+      "sudo mv /srv/openclaw/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose",
+      "sudo chmod 755 /usr/local/lib/docker/cli-plugins/docker-compose",
       "sudo chown -R ec2-user:ec2-user /srv/openclaw",
       "sudo chmod 700 /srv/openclaw",
-      "sudo chmod 700 /srv/openclaw/state /srv/openclaw/workspace",
-
-      // mv .env
-      "sudo mv /tmp/.env /srv/openclaw/.env",
-      "sudo chown ec2-user:ec2-user /srv/openclaw/.env",
       "sudo chmod 600 /srv/openclaw/.env",
-
-      // mv docker-compose.yml
-      "sudo mv /tmp/docker-compose.yml /srv/openclaw/docker-compose.yml",
-      "sudo chown ec2-user:ec2-user /srv/openclaw/docker-compose.yml",
       "sudo chmod 644 /srv/openclaw/docker-compose.yml",
+      "sudo chmod 644 /srv/openclaw/init.mjs",
+      "sudo chmod 600 /srv/openclaw/openclaw.json",
 
-      // install compose
-      // get latest version num from:
-      "sudo mkdir -p /usr/local/lib/docker/cli-plugins",
-      "sudo mv /tmp/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose",
-      "sudo chmod 755 /usr/local/lib/docker/cli-plugins/docker-compose",
-
+      # automatic updates
       "sudo systemctl enable --now dnf-automatic.timer",
     ]
   }

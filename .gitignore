@@ -2,3 +2,5 @@
 .env
 .terraform.lock.hcl
 docker-compose
+config/
+*.pem

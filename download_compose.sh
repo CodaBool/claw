@@ -10,7 +10,7 @@ tag="$(
 
 curl -fsSL \
   "https://github.com/docker/compose/releases/download/${tag}/docker-compose-linux-${arch}" \
-  -o docker-compose
+  -o ./ami/docker-compose
 
-chmod +x docker-compose
+chmod +x ./ami/docker-compose
 echo "Downloaded ${tag}"
