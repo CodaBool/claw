@@ -33,6 +33,8 @@ resource "aws_instance" "main" {
   instance_type          = "t4g.small"
   subnet_id              = local.subnet # ipv6
   key_name               = local.name
+  # too many things break without the ipv4
+  associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.main.id]
   ipv6_addresses         = [local.ip]
   # for initial assignment
@@ -79,6 +81,12 @@ resource "aws_security_group" "main" {
     to_port          = 0
     protocol         = "-1"
     ipv6_cidr_blocks = ["::/0"]
+  }
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
     Name = local.name
