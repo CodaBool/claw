@@ -26,32 +26,29 @@ jobs:
       - uses: hashicorp/setup-packer@main
         with:
           version: 1.15.0 # https://releases.hashicorp.com/packer
+
+      - name: Write env
+        run: |
+          cat > ami/.env <<'EOF'
+          TUNNEL_TOKEN=${{ secrets.TUNNEL_TOKEN }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          OPENCLAW_GATEWAY_TOKEN=${{ secrets.OPENCLAW_GATEWAY_TOKEN }}
+          BRAVE_TOKEN=${{ secrets.BRAVE_TOKEN }}
+          DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
+          DISCORD_USER=${{ secrets.DISCORD_USER }}
+          EOF
       - name: Packer
         if: "! contains(github.event.commits[0].message, '[skip build]')"
-        # working-directory: ./ops
         run: |
-          # echo "MONGO_URI=${{ secrets.MONGO_URI }}" > ../.env
           ./download_compose.sh
           packer init .
           packer build -var="unique_ami_name=claw" .
-          #packer build -var="unique_ami_name=${{ env.repo }}-${{ env.run }}" .
       # https://github.com/marketplace/actions/hashicorp-setup-terraform
       - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: 1.14.6 # https://releases.hashicorp.com/terraform
           # terraform_wrapper: false
       - name: Deploy
-        # working-directory: ./ops
         run: |
           terraform init
           terraform apply -auto-approve
-          # terraform apply -auto-approve -var="ssh_ip=${{ secrets.WIN_IP }}"
-      # - name: Dashboard
-      #   working-directory: ./ops
-      #   run: |
-      #     ./dashboard.sh
-      #     ./rm_ami.sh || true
-      #     ./rm_ebs.sh || true
-      # - name: Tag
-      #   working-directory: ./ops
-      #   run: aws ec2 create-tags --resources $(terraform output -raw id) --tags Key=Name,Value=${{ env.repo }}
