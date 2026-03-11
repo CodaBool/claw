@@ -67,7 +67,7 @@ build {
       "sudo chmod 600 /srv/openclaw/.env",
       "sudo chmod 644 /srv/openclaw/docker-compose.yml",
       "sudo chmod 644 /srv/openclaw/init.mjs",
-      "sudo chmod 600 /srv/openclaw/openclaw.json",
+      "sudo chmod 600 /srv/openclaw/openclaw.json.tmpl",
       "sudo chown -R ec2-user:ec2-user /srv/openclaw",
 
       # automatic updates
