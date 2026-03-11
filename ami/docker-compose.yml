@@ -6,14 +6,14 @@ services:
     user: 1000:1000
     env_file: [.env]
     ports:
-      - "18789:18789" # gateway
-      # - "18790:18790" # bridge
+      - "18789:18789"
     volumes:
       - ./config:/home/node/.openclaw
       - ./init.mjs:/app/init.mjs:ro
       - ./skills:/app/skills:ro
-      - ./openclaw.json.tmpl:/home/node/.openclaw/openclaw.json.tmpl:ro
-      - ./auth-profiles.json.tmpl:/home/node/.openclaw/auth-profiles.json.tmpl:ro
+      - ./install_skills.mjs:/app/install_skills.mjs:ro
+      - ./openclaw.json.tmpl:/app/openclaw.json.tmpl:ro
+      - ./auth-profiles.json.tmpl:/app/auth-profiles.json.tmpl:ro
     logging:
       driver: awslogs
       options:

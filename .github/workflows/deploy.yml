@@ -26,11 +26,12 @@ jobs:
       - uses: hashicorp/setup-packer@main
         with:
           version: 1.15.0 # https://releases.hashicorp.com/packer
-      - name: Write env recursively
+      - name: Write env
         run: |
           echo '${{ toJSON(secrets) }}' \
-            | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' \
+            | jq -r 'to_entries | map(select(.key != "github_token")) | .[] | "\(.key)=\(.value)"' \
             > ami/.env
+            sed -i 's/^GH_TOKEN=/GITHUB_TOKEN=/' ami/.env
       - name: Packer
         if: "! contains(github.event.commits[0].message, '[skip build]')"
         run: |

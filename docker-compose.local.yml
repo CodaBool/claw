@@ -16,8 +16,10 @@ services:
     volumes:
       - ./ami/config:/home/node/.openclaw
       - ./ami/init.mjs:/app/init.mjs:ro
-      - ./ami/openclaw.json.tmpl:/home/node/.openclaw/openclaw.json.tmpl:ro
-      - ./ami/auth-profiles.json.tmpl:/home/node/.openclaw/auth-profiles.json.tmpl:ro
+      - ./ami/skills:/app/skills:ro
+      - ./ami/install_skills.mjs:/app/install_skills.mjs:ro
+      - ./ami/openclaw.json.tmpl:/app/openclaw.json.tmpl:ro
+      - ./ami/auth-profiles.json.tmpl:/app/auth-profiles.json.tmpl:ro
     command: node init.mjs
 # approve the first device pending
 # docker exec claw bash -lc 'openclaw devices approve $(openclaw devices list | grep -m1 -oE "[0-9a-fA-F-]{36}")'
