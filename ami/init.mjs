@@ -4,7 +4,7 @@ import path from "path"
 
 const CONFIG_DIR = "/home/node/.openclaw"
 const CONFIG_FILE = path.join(CONFIG_DIR, "openclaw.json")
-const TEMPLATE_FILE = path.join(CONFIG_DIR, "openclaw.json")
+const TEMPLATE_FILE = path.join(CONFIG_DIR, "openclaw.json.tmpl")
 
 function renderTemplate(template) {
   return template.replace(/\$\{([^}]+)\}/g, (_, name) => {

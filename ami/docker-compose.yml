@@ -23,6 +23,8 @@ services:
         awslogs-group: /aws/ec2/claw/openclaw
         awslogs-stream: openclaw
         awslogs-create-group: "false"
+        # awslogs-create-stream: "false"
+        awslogs-endpoint: https://logs.us-east-1.api.aws
     security_opt:
       - no-new-privileges:true
     command: node init.mjs

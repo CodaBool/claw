@@ -23,7 +23,7 @@ locals {
   name      = "claw" # will use "name*" for ami filtering, keyname
   subnet    = "subnet-02bd6f23bd2e48675"
   ip        = "2600:1f18:1248:e300:f523:4a18:df36:eca1"
-  ssh_ipv6  = "2600:1700:8c00:591f::2b8/128"
+  ssh_ipv6  = ["2600:1700:8c00:591f::2b8/128", "2600:1700:8c00:591f::2c0/128"]
   log_group = "/aws/ec2/claw/openclaw"
 }
 
@@ -72,19 +72,13 @@ resource "aws_security_group" "main" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    ipv6_cidr_blocks = [local.ssh_ipv6]
+    ipv6_cidr_blocks = local.ssh_ipv6
   }
   egress {
     from_port        = 0
     to_port          = 0
     protocol         = "-1"
     ipv6_cidr_blocks = ["::/0"]
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
     Name = local.name
