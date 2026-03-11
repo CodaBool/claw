@@ -26,18 +26,11 @@ jobs:
       - uses: hashicorp/setup-packer@main
         with:
           version: 1.15.0 # https://releases.hashicorp.com/packer
-
-      - name: Write env
+      - name: Write env recursively
         run: |
-          cat > ami/.env <<'EOF'
-          TUNNEL_TOKEN=${{ secrets.TUNNEL_TOKEN }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
-          GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
-          OPENCLAW_GATEWAY_TOKEN=${{ secrets.OPENCLAW_GATEWAY_TOKEN }}
-          BRAVE_TOKEN=${{ secrets.BRAVE_TOKEN }}
-          DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}
-          DISCORD_USER=${{ secrets.DISCORD_USER }}
-          EOF
+          echo '${{ toJSON(secrets) }}' \
+            | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' \
+            > ami/.env
       - name: Packer
         if: "! contains(github.event.commits[0].message, '[skip build]')"
         run: |
