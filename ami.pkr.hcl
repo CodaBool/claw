@@ -58,16 +58,10 @@ build {
       "sudo systemctl start sshd",
 
       # moving files and setting permissions
-      "sudo mkdir -p /srv/openclaw /srv/openclaw/config",
+      "sudo mkdir -p /srv/openclaw /srv/openclaw/config /srv/openclaw/skills",
       "sudo cp -a /tmp/. /srv/openclaw/",
       "sudo mkdir -p /usr/local/lib/docker/cli-plugins",
       "sudo mv /srv/openclaw/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose",
-      "sudo chmod 755 /usr/local/lib/docker/cli-plugins/docker-compose",
-      "sudo chmod 700 /srv/openclaw",
-      "sudo chmod 600 /srv/openclaw/.env",
-      "sudo chmod 644 /srv/openclaw/docker-compose.yml",
-      "sudo chmod 644 /srv/openclaw/init.mjs",
-      "sudo chmod 600 /srv/openclaw/openclaw.json.tmpl",
       "sudo chown -R ec2-user:ec2-user /srv/openclaw",
 
       # automatic updates

@@ -1,0 +1,23 @@
+services:
+  claw:
+    build:
+      context: ./openclaw
+      dockerfile: Dockerfile
+    container_name: claw
+    user: 1000:1000
+    restart: unless-stopped
+    env_file:
+      - ./ami/.env
+    environment:
+      - OPENCLAW_INSTALL_BROWSER=true
+      # - OPENCLAW_DOCKER_APT_PACKAGES=""
+    ports:
+      - "18789:18789"
+    volumes:
+      - ./ami/config:/home/node/.openclaw
+      - ./ami/init.mjs:/app/init.mjs:ro
+      - ./ami/openclaw.json.tmpl:/home/node/.openclaw/openclaw.json.tmpl:ro
+      - ./ami/auth-profiles.json.tmpl:/home/node/.openclaw/auth-profiles.json.tmpl:ro
+    command: node init.mjs
+# approve the first device pending
+# docker exec claw bash -lc 'openclaw devices approve $(openclaw devices list | grep -m1 -oE "[0-9a-fA-F-]{36}")'

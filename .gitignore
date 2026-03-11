@@ -4,3 +4,5 @@
 docker-compose
 config/
 *.pem
+openclaw/
+*.junk.*

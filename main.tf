@@ -42,8 +42,12 @@ resource "aws_instance" "main" {
   iam_instance_profile = local.name
   root_block_device {
     volume_type = "gp3"
-    volume_size = 4 # base image uses ~2Gb
+    volume_size = 12 # base image uses ~2Gb
   }
+  #   if you increase the size you can grow the partition:
+  # sudo growpart /dev/nvme0n1 1
+  # sudo xfs_growfs -d /
+
   # force IMDSv2
   metadata_options {
     http_tokens = "required"

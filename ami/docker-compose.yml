@@ -3,19 +3,17 @@ services:
     image: alpine/openclaw
     container_name: claw
     restart: unless-stopped
+    user: 1000:1000
     env_file: [.env]
-    # environment:
-    # - OPENCLAW_ALLOW_INSECURE_PRIVATE_WS=true
-    # - OPENCLAW_DOCKER_APT_PACKAGES=git
-    # - OPENCLAW_INSTALL_BROWSER=true
-    # - OPENCLAW_INSTALL_DOCKER_CLI=true
     ports:
       - "18789:18789" # gateway
       # - "18790:18790" # bridge
     volumes:
       - ./config:/home/node/.openclaw
-      - ./init.mjs:/app/init.mjs
-      - ./openclaw.json.tmpl:/home/node/.openclaw/openclaw.json.tmpl
+      - ./init.mjs:/app/init.mjs:ro
+      - ./skills:/app/skills:ro
+      - ./openclaw.json.tmpl:/home/node/.openclaw/openclaw.json.tmpl:ro
+      - ./auth-profiles.json.tmpl:/home/node/.openclaw/auth-profiles.json.tmpl:ro
     logging:
       driver: awslogs
       options:
@@ -23,12 +21,12 @@ services:
         awslogs-group: /aws/ec2/claw/openclaw
         awslogs-stream: openclaw
         awslogs-create-group: "false"
-        # awslogs-create-stream: "false"
         awslogs-endpoint: https://logs.us-east-1.api.aws
     security_opt:
       - no-new-privileges:true
     command: node init.mjs
-    # only thing manually needed is gateway token & pairing device
+# approve the first device pending
+# docker exec claw bash -lc 'openclaw devices approve $(openclaw devices list | grep -m1 -oE "[0-9a-fA-F-]{36}")'
 
 
   cloudflared:
