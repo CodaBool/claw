@@ -59,11 +59,11 @@ build {
 
       // setup volumes
       "sudo mkdir -p /srv/openclaw",
-      "sudo cp -a /tmp/packer-files/. /srv/openclaw/",
+      "sudo cp -a /tmp/ami/. /srv/openclaw/",
 
       # moving files and setting permissions
       "sudo mkdir -p /srv/openclaw",
-      "sudo cp -a /tmp/packer-files/. /srv/openclaw/",
+      "sudo cp -a /tmp/ami/. /srv/openclaw/",
       "sudo mkdir -p /usr/local/lib/docker/cli-plugins",
       "sudo mv /srv/openclaw/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose",
       "sudo chmod 755 /usr/local/lib/docker/cli-plugins/docker-compose",
